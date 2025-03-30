@@ -18,6 +18,7 @@ import in.NiketProject.foodiesapi.io.FoodResponse; // Lombok annotation to gener
 import in.NiketProject.foodiesapi.repository.FoodRepository;
 import software.amazon.awssdk.core.sync.RequestBody; // Represents the body of an S3 request
 import software.amazon.awssdk.services.s3.S3Client; // AWS SDK client for interacting with S3
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest; // Represents a request to upload an object to S3
 import software.amazon.awssdk.services.s3.model.PutObjectResponse; // Represents the response from an S3 upload request
 
@@ -46,7 +47,9 @@ public class FoodServiceImpl implements FoodService {
     @Override
     public String uploadFile(MultipartFile file) {
         // Extract the file extension from the original file name
-        String filenameExtension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+        String filenameExtension = file.getOriginalFilename()
+                                    .substring(file.getOriginalFilename()
+                                    .lastIndexOf(".") + 1);
 
         // Generate a unique key for the file using a UUID and the file extension
         String key = UUID.randomUUID().toString() + "." + filenameExtension;
@@ -124,5 +127,31 @@ public class FoodServiceImpl implements FoodService {
         FoodEntity foodEntity = foodRepository.findById(foodId) // Fetch the FoodEntity by ID
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Food not found")); // Throw an exception if not found
         return convertToResponse(foodEntity); // Convert the found entity to a response object
+    }
+
+    @Override
+    public boolean deleteFile(String fileName) {
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName) // The name of the S3 bucket
+                .key(fileName) // The key of the file to be deleted
+                .build();
+        
+        s3Client.deleteObject(deleteObjectRequest); // Delete the object from S3
+        return true; // Return true to indicate successful deletion
+    }
+
+    @Override
+    public void deleteFood(String foodId) {
+        FoodEntity foodEntity = foodRepository.findById(foodId) // Fetch the FoodEntity by ID
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Food not found")); // Throw an exception if not found
+        String imageUrl = foodEntity.getImageUrl(); // Get the image URL from the entity
+        String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1); // Extract the file name from the URL
+        boolean isFileDeleted =  deleteFile(fileName); // Delete the file from S3
+        if(isFileDeleted) {
+            foodRepository.deleteById(foodId);
+        }
+        else{
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete file from S3");
+        }
     }
 }
