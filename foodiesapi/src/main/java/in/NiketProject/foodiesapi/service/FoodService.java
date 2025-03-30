@@ -13,4 +13,6 @@ public interface FoodService {
     FoodResponse addFood(FoodRequest request, MultipartFile file);
 
     List<FoodResponse> readFoods();
+
+    FoodResponse getFoodById(String foodId);
 }

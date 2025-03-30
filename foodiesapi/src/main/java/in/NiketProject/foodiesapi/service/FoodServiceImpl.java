@@ -118,4 +118,11 @@ public class FoodServiceImpl implements FoodService {
                 .map(object -> convertToResponse(object)) // Map each FoodEntity to a FoodResponse
                 .toList(); // Collect the results into a list
     }
+
+    @Override
+    public FoodResponse getFoodById(String foodId) {
+        FoodEntity foodEntity = foodRepository.findById(foodId) // Fetch the FoodEntity by ID
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Food not found")); // Throw an exception if not found
+        return convertToResponse(foodEntity); // Convert the found entity to a response object
+    }
 }
