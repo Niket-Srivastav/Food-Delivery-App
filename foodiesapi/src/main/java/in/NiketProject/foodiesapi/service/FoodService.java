@@ -1,5 +1,7 @@
 package in.NiketProject.foodiesapi.service;
 
+import java.util.List;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import in.NiketProject.foodiesapi.io.FoodRequest;
@@ -9,4 +11,6 @@ public interface FoodService {
     String uploadFile(MultipartFile file);
 
     FoodResponse addFood(FoodRequest request, MultipartFile file);
+
+    List<FoodResponse> readFoods();
 }

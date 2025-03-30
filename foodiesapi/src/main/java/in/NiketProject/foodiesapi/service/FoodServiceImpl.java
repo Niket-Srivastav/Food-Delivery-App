@@ -2,6 +2,7 @@ package in.NiketProject.foodiesapi.service;
 
 // Importing necessary classes
 import java.io.IOException; // Handles input-output exceptions
+import java.util.List;
 import java.util.UUID; // Used to generate unique identifiers for file names
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,5 +109,13 @@ public class FoodServiceImpl implements FoodService {
                 .category(foodEntity.getCategory())
                 .imageUrl(foodEntity.getImageUrl())
                 .build();
+    }
+
+    @Override
+    public List<FoodResponse> readFoods() {
+        List<FoodEntity> foodEntities = foodRepository.findAll(); // Fetch all food entities from the database
+        return foodEntities.stream() // Convert the list of FoodEntity to a stream
+                .map(object -> convertToResponse(object)) // Map each FoodEntity to a FoodResponse
+                .toList(); // Collect the results into a list
     }
 }
